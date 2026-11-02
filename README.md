@@ -70,7 +70,7 @@ all print to stderr in loguru's format:
   when there is a traceback:
 
   ```text
-  {"time": "2026-11-02T13:59:12.094001+00:00", "level": "INFO", "message": "GET /health 200 34.2ms", "location": "app.request_log:__call__:56", "request_id": "demo-123"}
+  {"time": "2026-11-02T13:59:12.094001+00:00", "level": "INFO", "message": "GET /items 200 34.2ms", "location": "app.request_log:__call__:56", "request_id": "demo-123"}
   ```
 - In app code, log with `from loguru import logger`.
 - To log request or response headers, pass them through `redact_headers()` from
