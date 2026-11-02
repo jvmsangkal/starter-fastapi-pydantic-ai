@@ -1,15 +1,16 @@
-import os
 from collections.abc import Iterator
 from typing import Annotated
 
 from fastapi import Depends
 from sqlmodel import Session, SQLModel, create_engine
 
-DATABASE_URL = os.environ.get('DATABASE_URL', 'sqlite:///./app.db')
+from app.env import env
 
 # SQLite connections are thread-bound by default; FastAPI runs sync deps in a threadpool.
-connect_args = {'check_same_thread': False} if DATABASE_URL.startswith('sqlite') else {}
-engine = create_engine(DATABASE_URL, connect_args=connect_args)
+connect_args = (
+    {'check_same_thread': False} if env.DATABASE_URL.startswith('sqlite') else {}
+)
+engine = create_engine(env.DATABASE_URL, connect_args=connect_args)
 
 
 def create_db_and_tables() -> None:
