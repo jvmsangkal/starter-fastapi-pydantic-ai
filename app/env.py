@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import SecretStr, ValidationError, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.engine import make_url
@@ -10,6 +12,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str = 'sqlite:///./app.db'
     # Optional so the app boots without it; POST /chat needs it to call the model.
     OPENAI_API_KEY: SecretStr | None = None
+    LOG_LEVEL: Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] = 'INFO'
 
     @field_validator('OPENAI_API_KEY')
     @classmethod
