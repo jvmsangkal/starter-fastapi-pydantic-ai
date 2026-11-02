@@ -13,7 +13,6 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def open_resources(app: FastAPI) -> AsyncGenerator[None]:
-    """Create the shared clients on `app.state` and close them on exit."""
     engine = create_db_engine()
     app.state.engine = engine
     try:
