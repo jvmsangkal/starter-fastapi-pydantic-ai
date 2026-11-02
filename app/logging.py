@@ -1,10 +1,26 @@
 import inspect
+import json
 import logging
 import sys
+import traceback
+from collections.abc import Mapping
+from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
 from app.env import env
+
+if TYPE_CHECKING:
+    from loguru import Message
+
+SENSITIVE_HEADERS = frozenset({'authorization', 'cookie', 'set-cookie', 'x-api-key'})
+
+
+def redact_headers(headers: Mapping[str, str]) -> dict[str, str]:
+    return {
+        name: '[REDACTED]' if name.lower() in SENSITIVE_HEADERS else value
+        for name, value in headers.items()
+    }
 
 
 class InterceptHandler(logging.Handler):
@@ -30,9 +46,25 @@ class InterceptHandler(logging.Handler):
         )
 
 
+def _json_sink(message: Message) -> None:
+    record = message.record
+    line: dict[str, Any] = {
+        'time': record['time'].isoformat(),
+        'level': record['level'].name,
+        'message': record['message'],
+        'location': f'{record["name"]}:{record["function"]}:{record["line"]}',
+    }
+    if record['exception'] is not None:
+        line['exception'] = ''.join(traceback.format_exception(*record['exception']))
+    sys.stderr.write(json.dumps(line) + '\n')
+
+
 def setup_logging() -> None:
     logger.remove()
-    logger.add(sys.stderr, level=env.LOG_LEVEL)
+    if env.LOG_JSON:
+        logger.add(_json_sink, level=env.LOG_LEVEL)
+    else:
+        logger.add(sys.stderr, level=env.LOG_LEVEL)
     logging.basicConfig(handlers=[InterceptHandler()], level=env.LOG_LEVEL, force=True)
     # uvicorn gives these loggers their own handlers and propagate=False.
     for name in ('uvicorn', 'uvicorn.error', 'uvicorn.access'):
