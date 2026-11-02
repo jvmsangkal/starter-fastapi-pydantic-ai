@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "uv run --quiet python scripts/ruff_after_edit.py",
+        "timeout": 30
+      }
+    ]
+  }
+}

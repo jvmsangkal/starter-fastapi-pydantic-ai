@@ -1,0 +1,35 @@
+[project]
+name = "starter-fastapi-pydantic-ai"
+version = "0.1.0"
+description = "Starter template: FastAPI + Pydantic AI, managed with uv."
+readme = "README.md"
+requires-python = ">=3.15"
+dependencies = [
+    "fastapi[standard]>=0.162.0",
+    "pydantic-ai-slim[openai]>=2.64.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.7.0",
+    "pyrefly>=1.4.0",
+    "pytest>=9.2.0",
+    "ruff>=0.17.3",
+]
+
+[tool.fastapi]
+entrypoint = "app.main:app"
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+extend-select = ["I", "UP", "B", "SIM"]
+
+[tool.pyrefly]
+project-includes = ["app", "tests", "scripts"]
+
+[tool.pytest]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = ["-ra"]
