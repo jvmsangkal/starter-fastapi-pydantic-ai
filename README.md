@@ -52,6 +52,33 @@ curl -X POST http://127.0.0.1:8000/items -H 'content-type: application/json' -d 
 curl -X POST http://127.0.0.1:8000/chat -H 'content-type: application/json' -d '{"prompt": "Hello"}'
 ```
 
+## Logging
+
+`app/logging.py` sets up [loguru](https://loguru.readthedocs.io/) when the app starts and
+routes the standard `logging` module into it. Uvicorn, FastAPI, SQLAlchemy, and app code
+all print to stderr in loguru's format:
+
+```text
+2026-11-02 13:56:26.701 | INFO     | - | uvicorn.lifespan.on:startup:62 - Application startup complete.
+2026-11-02 13:56:33.381 | INFO     | demo-123 | app.request_log:__call__:47 - GET /items 200 34.7ms
+```
+
+- Set the level with `LOG_LEVEL`: `DEBUG`, `INFO` (the default), `WARNING`, `ERROR`, or
+  `CRITICAL`.
+- In app code, log with `from loguru import logger`.
+
+`RequestLogMiddleware` in `app/request_log.py` gives each request an id. It takes the
+`x-request-id` request header if the value is 1 to 128 letters, digits, `.`, `_`, `:`, or
+`-`, and otherwise generates a UUID4. The response returns the id in `x-request-id`. Every
+log line written during the request shows the id after the level, and lines outside a
+request show `-`. The middleware also writes one access line per request, as in the second
+line above, except for `/live` and `/ready`. Uvicorn's own access log is off, so each
+request gets one access line.
+
+The setup runs in the app's lifespan. Uvicorn prints `Started server process` and
+`Waiting for application startup.` before the lifespan starts, so those two lines keep
+uvicorn's format. The reloader's lines under `make run` keep it too.
+
 ## Lint, format, typecheck, test
 
 ```bash

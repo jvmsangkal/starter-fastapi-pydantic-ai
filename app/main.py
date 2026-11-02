@@ -7,14 +7,19 @@ from sqlmodel import select
 
 from app.agent import agent
 from app.db import SessionDep, create_db_and_tables
+from app.logging import setup_logging
 from app.models import Item
 from app.probes import mark_ready
 from app.probes import router as probes_router
+from app.request_log import RequestLogMiddleware
 from app.resources import open_resources
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    # Not at import time: `fastapi run app/main.py` imports this module before
+    # uvicorn applies its log config, and that config would undo the setup.
+    setup_logging()
     async with open_resources(app):
         create_db_and_tables(app.state.engine)
         with mark_ready(app):
@@ -22,6 +27,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
 
 
 app = FastAPI(title='starter-fastapi-pydantic-ai', lifespan=lifespan)
+app.add_middleware(RequestLogMiddleware)
 app.include_router(probes_router)
 
 

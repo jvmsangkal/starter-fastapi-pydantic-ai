@@ -1,14 +1,12 @@
-import logging
 from collections.abc import AsyncGenerator
 from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI
+from loguru import logger
 
 from app.agent import agent
 from app.db import create_db_engine
 from app.env import env
-
-logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager

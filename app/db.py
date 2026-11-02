@@ -2,6 +2,7 @@ from collections.abc import Iterator
 from typing import Annotated
 
 from fastapi import Depends, Request
+from loguru import logger
 from sqlalchemy import Engine
 from sqlmodel import Session, SQLModel, create_engine
 
@@ -18,6 +19,8 @@ def create_db_engine() -> Engine:
 
 def create_db_and_tables(engine: Engine) -> None:
     SQLModel.metadata.create_all(engine)
+    # str(URL) masks the password.
+    logger.info('Database tables ready at {}', engine.url)
 
 
 def get_session(request: Request) -> Iterator[Session]:
