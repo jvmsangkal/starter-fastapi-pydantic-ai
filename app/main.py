@@ -8,6 +8,8 @@ from sqlmodel import select
 from app.agent import agent
 from app.db import SessionDep, create_db_and_tables
 from app.models import Item
+from app.probes import mark_ready
+from app.probes import router as probes_router
 from app.resources import open_resources
 
 
@@ -15,10 +17,12 @@ from app.resources import open_resources
 async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     async with open_resources(app):
         create_db_and_tables(app.state.engine)
-        yield
+        with mark_ready(app):
+            yield
 
 
 app = FastAPI(title='starter-fastapi-pydantic-ai', lifespan=lifespan)
+app.include_router(probes_router)
 
 
 class ChatRequest(BaseModel):
@@ -27,11 +31,6 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     output: str
-
-
-@app.get('/health')
-def health() -> dict[str, str]:
-    return {'status': 'ok'}
 
 
 @app.post('/chat')

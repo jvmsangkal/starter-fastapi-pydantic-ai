@@ -13,7 +13,8 @@ Guide for coding agents working in this repo.
 ## Layout
 
 ```
-app/main.py               FastAPI app: lifespan opens resources, creates tables; /health, /chat, /items
+app/main.py               FastAPI app: lifespan opens resources, creates tables; /chat, /items
+app/probes.py             /live and /ready probes; mark_ready() sets app.state.ready around the lifespan yield
 app/env.py                pydantic-settings schema; `env = load_env()` validates env/.env at import
 app/agent.py              Pydantic AI agent (model check deferred; no API key needed to boot)
 app/db.py                 engine factory from env.DATABASE_URL + SessionDep (reads app.state.engine)

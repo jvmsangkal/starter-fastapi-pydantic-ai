@@ -20,8 +20,13 @@ Run `make` (or `make help`) to list every target.
 
 ```bash
 make run
-curl http://127.0.0.1:8000/health   # {"status":"ok"}
+curl http://127.0.0.1:8000/live    # {"status":"ok"}
+curl http://127.0.0.1:8000/ready   # {"status":"ok"}
 ```
+
+`GET /live` always returns 200. `GET /ready` returns 200 after lifespan startup finishes and
+503 before then and once shutdown begins. Point liveness and readiness probes at them. Both
+are left out of the OpenAPI schema.
 
 The app starts without any secrets:
 
