@@ -5,6 +5,16 @@ import sys
 from loguru import logger
 
 from app.env import env
+from app.request_log import request_id
+
+# loguru's default format with the request id after the level.
+LOG_FORMAT = (
+    '<green>{time:YYYY-MM-DD HH:mm:ss.SSS}</green> | '
+    '<level>{level: <8}</level> | '
+    '{extra[request_id]} | '
+    '<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - '
+    '<level>{message}</level>'
+)
 
 
 class InterceptHandler(logging.Handler):
@@ -32,7 +42,10 @@ class InterceptHandler(logging.Handler):
 
 def setup_logging() -> None:
     logger.remove()
-    logger.add(sys.stderr, level=env.LOG_LEVEL)
+    logger.configure(
+        patcher=lambda record: record['extra'].update(request_id=request_id.get())
+    )
+    logger.add(sys.stderr, level=env.LOG_LEVEL, format=LOG_FORMAT)
     logging.basicConfig(handlers=[InterceptHandler()], level=env.LOG_LEVEL, force=True)
     # uvicorn gives these loggers their own handlers and propagate=False.
     for name in ('uvicorn', 'uvicorn.error', 'uvicorn.access'):
@@ -40,3 +53,6 @@ def setup_logging() -> None:
         uvicorn_logger.handlers.clear()
         uvicorn_logger.propagate = True
         uvicorn_logger.setLevel(logging.NOTSET)
+    # RequestLogMiddleware writes the access log. uvicorn skips its own access
+    # line when this logger has no handlers, so cut it off from the root's.
+    logging.getLogger('uvicorn.access').propagate = False
