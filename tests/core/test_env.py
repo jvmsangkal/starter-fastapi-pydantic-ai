@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from app.env import Settings, load_env
+from app.core.env import Settings, load_env
 
 
 @pytest.fixture(autouse=True)

@@ -10,7 +10,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
 
     DATABASE_URL: str = 'sqlite:///./app.db'
-    # Optional so the app boots without it; POST /chat needs it to call the model.
+    # Optional so the app boots without it; POST /v1/chat needs it to call the model.
     OPENAI_API_KEY: SecretStr | None = None
     LOG_LEVEL: Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] = 'INFO'
     LOG_JSON: bool = False

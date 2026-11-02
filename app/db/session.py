@@ -5,7 +5,7 @@ from fastapi import Depends, Request
 from sqlalchemy import Engine
 from sqlmodel import Session, create_engine
 
-from app.env import env
+from app.core.env import env
 
 
 def create_db_engine() -> Engine:

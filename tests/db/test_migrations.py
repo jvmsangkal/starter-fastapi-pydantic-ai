@@ -5,14 +5,14 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect
 
-from app.env import env
+from app.core.env import env
 
-ALEMBIC_INI = Path(__file__).parents[1] / 'alembic.ini'
+ALEMBIC_INI = Path(__file__).parents[2] / 'alembic.ini'
 
 
 @pytest.fixture
 def alembic_config(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Config:
-    # migrations/env.py reads the URL from app.env, so point it at a fresh file.
+    # migrations/env.py reads the URL from app.core.env, so point it at a fresh file.
     monkeypatch.setattr(env, 'DATABASE_URL', f'sqlite:///{tmp_path / "test.db"}')
     return Config(ALEMBIC_INI)
 

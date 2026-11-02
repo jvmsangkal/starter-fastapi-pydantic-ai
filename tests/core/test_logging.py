@@ -8,8 +8,8 @@ from fastapi.testclient import TestClient
 from loguru import logger
 from uvicorn.config import LOGGING_CONFIG
 
-from app.env import env
-from app.logging import setup_logging
+from app.core.env import env
+from app.core.logging import setup_logging
 
 
 @pytest.fixture
@@ -68,7 +68,7 @@ def test_json_access_line_has_request_id(
     json_logs: pytest.CaptureFixture[str], client: TestClient
 ) -> None:
     client.get(
-        '/items',
+        '/v1/items',
         headers={'x-request-id': 'abc-123', 'authorization': 'Bearer secret'},
     )
 
@@ -76,7 +76,7 @@ def test_json_access_line_has_request_id(
     access = [
         line
         for line in map(json.loads, output.splitlines())
-        if line['message'].startswith('GET /items 200')
+        if line['message'].startswith('GET /v1/items 200')
     ]
     assert len(access) == 1
     assert access[0]['request_id'] == 'abc-123'

@@ -2,18 +2,15 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from pydantic import BaseModel
-from sqlmodel import select
 
-from app.agent import agent
-from app.db import SessionDep
-from app.errors import AppError, ConflictError, NotFoundError, app_error_handler
-from app.logging import setup_logging
-from app.models import Item
-from app.probes import mark_ready
-from app.probes import router as probes_router
-from app.request_log import RequestLogMiddleware
-from app.resources import open_resources
+from app.chat.routes import router as chat_router
+from app.core.errors import AppError, app_error_handler
+from app.core.logging import setup_logging
+from app.core.probes import mark_ready
+from app.core.probes import router as probes_router
+from app.core.request_log import RequestLogMiddleware
+from app.core.resources import open_resources
+from app.items.routes import router as items_router
 
 
 @asynccontextmanager
@@ -26,44 +23,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
             yield
 
 
-app = FastAPI(title='starter-fastapi-pydantic-ai', lifespan=lifespan)
-app.exception_handler(AppError)(app_error_handler)
-app.add_middleware(RequestLogMiddleware)
-app.include_router(probes_router)
+def create_app() -> FastAPI:
+    app = FastAPI(title='starter-fastapi-pydantic-ai', lifespan=lifespan)
+    app.exception_handler(AppError)(app_error_handler)
+    app.add_middleware(RequestLogMiddleware)
+    app.include_router(probes_router)
+    app.include_router(items_router, prefix='/v1')
+    app.include_router(chat_router, prefix='/v1')
+    return app
 
 
-class ChatRequest(BaseModel):
-    prompt: str
-
-
-class ChatResponse(BaseModel):
-    output: str
-
-
-@app.post('/chat')
-async def chat(request: ChatRequest) -> ChatResponse:
-    result = await agent.run(request.prompt)
-    return ChatResponse(output=result.output)
-
-
-@app.post('/items')
-def create_item(item: Item, session: SessionDep) -> Item:
-    if item.id is not None and session.get(Item, item.id) is not None:
-        raise ConflictError(f'Item {item.id} already exists')
-    session.add(item)
-    session.commit()
-    session.refresh(item)
-    return item
-
-
-@app.get('/items')
-def list_items(session: SessionDep) -> list[Item]:
-    return list(session.exec(select(Item)).all())
-
-
-@app.get('/items/{item_id}')
-def get_item(item_id: int, session: SessionDep) -> Item:
-    item = session.get(Item, item_id)
-    if item is None:
-        raise NotFoundError(f'Item {item_id} not found')
-    return item
+app = create_app()

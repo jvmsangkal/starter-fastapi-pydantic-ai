@@ -3,10 +3,11 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 from pydantic_ai import models
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, create_engine
 from sqlmodel.pool import StaticPool
 
-from app.db import get_session
+from app.db.base import metadata
+from app.db.session import get_session
 from app.main import app
 
 
@@ -24,7 +25,7 @@ def session() -> Iterator[Session]:
         connect_args={'check_same_thread': False},
         poolclass=StaticPool,
     )
-    SQLModel.metadata.create_all(engine)
+    metadata.create_all(engine)
     with Session(engine) as session:
         yield session
 
