@@ -8,17 +8,23 @@ from sqlmodel import select
 from app.agent import agent
 from app.db import SessionDep, create_db_and_tables
 from app.errors import AppError, ConflictError, NotFoundError, app_error_handler
+from app.logging import setup_logging
 from app.models import Item
+from app.request_log import RequestLogMiddleware
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
+    # Not at import time: `fastapi run app/main.py` imports this module before
+    # uvicorn applies its log config, and that config would undo the setup.
+    setup_logging()
     create_db_and_tables()
     yield
 
 
 app = FastAPI(title='starter-fastapi-pydantic-ai', lifespan=lifespan)
 app.exception_handler(AppError)(app_error_handler)
+app.add_middleware(RequestLogMiddleware)
 
 
 class ChatRequest(BaseModel):
