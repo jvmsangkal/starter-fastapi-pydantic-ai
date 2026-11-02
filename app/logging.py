@@ -1,6 +1,9 @@
 import inspect
+import json
 import logging
 import sys
+import traceback
+from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
@@ -15,6 +18,9 @@ LOG_FORMAT = (
     '<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - '
     '<level>{message}</level>'
 )
+
+if TYPE_CHECKING:
+    from loguru import Message
 
 
 class InterceptHandler(logging.Handler):
@@ -40,12 +46,29 @@ class InterceptHandler(logging.Handler):
         )
 
 
+def _json_sink(message: Message) -> None:
+    record = message.record
+    line: dict[str, Any] = {
+        'time': record['time'].isoformat(),
+        'level': record['level'].name,
+        'message': record['message'],
+        'location': f'{record["name"]}:{record["function"]}:{record["line"]}',
+        'request_id': record['extra']['request_id'],
+    }
+    if record['exception'] is not None:
+        line['exception'] = ''.join(traceback.format_exception(*record['exception']))
+    sys.stderr.write(json.dumps(line) + '\n')
+
+
 def setup_logging() -> None:
     logger.remove()
     logger.configure(
         patcher=lambda record: record['extra'].update(request_id=request_id.get())
     )
-    logger.add(sys.stderr, level=env.LOG_LEVEL, format=LOG_FORMAT)
+    if env.LOG_JSON:
+        logger.add(_json_sink, level=env.LOG_LEVEL)
+    else:
+        logger.add(sys.stderr, level=env.LOG_LEVEL, format=LOG_FORMAT)
     logging.basicConfig(handlers=[InterceptHandler()], level=env.LOG_LEVEL, force=True)
     # uvicorn gives these loggers their own handlers and propagate=False.
     for name in ('uvicorn', 'uvicorn.error', 'uvicorn.access'):

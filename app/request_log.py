@@ -1,6 +1,7 @@
 import re
 import time
 import uuid
+from collections.abc import Mapping
 from contextvars import ContextVar
 
 from loguru import logger
@@ -13,6 +14,14 @@ request_id: ContextVar[str] = ContextVar('request_id', default='-')
 SKIPPED_PATHS = frozenset({'/live', '/ready'})
 # An incoming id ends up in every log line, so accept only short, plain ones.
 VALID_REQUEST_ID = re.compile(r'[A-Za-z0-9._:-]{1,128}')
+SENSITIVE_HEADERS = frozenset({'authorization', 'cookie', 'set-cookie', 'x-api-key'})
+
+
+def redact_headers(headers: Mapping[str, str]) -> dict[str, str]:
+    return {
+        name: '[REDACTED]' if name.lower() in SENSITIVE_HEADERS else value
+        for name, value in headers.items()
+    }
 
 
 class RequestLogMiddleware:

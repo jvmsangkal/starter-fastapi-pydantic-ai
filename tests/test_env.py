@@ -20,6 +20,7 @@ def test_defaults_load_without_any_env() -> None:
     assert env.DATABASE_URL == 'sqlite:///./app.db'
     assert env.OPENAI_API_KEY is None
     assert env.LOG_LEVEL == 'INFO'
+    assert env.LOG_JSON is False
 
 
 def test_reads_dotenv_file(tmp_path: Path) -> None:
