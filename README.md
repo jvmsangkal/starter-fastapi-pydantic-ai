@@ -79,7 +79,17 @@ all print to stderr in loguru's format:
 
 - Set the level with `LOG_LEVEL`: `DEBUG`, `INFO` (the default), `WARNING`, `ERROR`, or
   `CRITICAL`.
+- Set `LOG_JSON=1` to print one JSON object per line instead, for log collectors. Each
+  line has `time`, `level`, `message`, `location`, and `request_id`, plus `exception`
+  when there is a traceback:
+
+  ```text
+  {"time": "2026-11-02T13:59:12.094001+00:00", "level": "INFO", "message": "GET /health 200 34.2ms", "location": "app.request_log:__call__:56", "request_id": "demo-123"}
+  ```
 - In app code, log with `from loguru import logger`.
+- To log request or response headers, pass them through `redact_headers()` from
+  `app/request_log.py`. It replaces the values of `authorization`, `cookie`, `set-cookie`,
+  and `x-api-key` (any case) with `[REDACTED]`.
 
 `RequestLogMiddleware` in `app/request_log.py` gives each request an id. It takes the
 `x-request-id` request header if the value is 1 to 128 letters, digits, `.`, `_`, `:`, or
