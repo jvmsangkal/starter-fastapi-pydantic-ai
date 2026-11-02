@@ -22,10 +22,10 @@ def lines() -> Iterator[list[str]]:
 
 
 def test_stdlib_logs_go_through_loguru(lines: list[str]) -> None:
-    logging.getLogger('uvicorn.access').info('%s - "GET /health"', '127.0.0.1')
+    logging.getLogger('uvicorn.error').info('Application startup complete.')
     logging.getLogger('sqlalchemy').warning('pool exhausted')
 
     assert lines == [
-        'INFO test_stdlib_logs_go_through_loguru: 127.0.0.1 - "GET /health"\n',
+        'INFO test_stdlib_logs_go_through_loguru: Application startup complete.\n',
         'WARNING test_stdlib_logs_go_through_loguru: pool exhausted\n',
     ]

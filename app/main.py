@@ -9,6 +9,7 @@ from app.agent import agent
 from app.db import SessionDep, create_db_and_tables
 from app.logging import setup_logging
 from app.models import Item
+from app.request_log import RequestLogMiddleware
 
 
 @asynccontextmanager
@@ -21,6 +22,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
 
 
 app = FastAPI(title='starter-fastapi-pydantic-ai', lifespan=lifespan)
+app.add_middleware(RequestLogMiddleware)
 
 
 class ChatRequest(BaseModel):

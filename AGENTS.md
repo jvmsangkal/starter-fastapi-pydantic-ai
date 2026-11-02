@@ -16,6 +16,7 @@ Guide for coding agents working in this repo.
 app/main.py               FastAPI app: lifespan sets up logging, creates tables; /health, /chat, /items
 app/env.py                pydantic-settings schema; `env = load_env()` validates env/.env at import
 app/logging.py            setup_logging(): loguru to stderr at LOG_LEVEL, stdlib logging routed into it
+app/request_log.py        ASGI middleware: x-request-id in every log line and the response; one access line per request
 app/agent.py              Pydantic AI agent (model check deferred; no API key needed to boot)
 app/db.py                 SQLModel engine from env.DATABASE_URL + SessionDep dependency
 app/models.py             SQLModel table models
