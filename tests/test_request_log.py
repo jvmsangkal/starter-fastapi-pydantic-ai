@@ -12,7 +12,7 @@ from loguru import logger
 from uvicorn.config import LOGGING_CONFIG
 
 from app.logging import setup_logging
-from app.request_log import RequestLogMiddleware
+from app.request_log import RequestLogMiddleware, redact_headers
 
 demo = FastAPI()
 demo.add_middleware(RequestLogMiddleware)
@@ -105,3 +105,21 @@ def test_uvicorn_access_log_is_off(lines: list[str]) -> None:
     logging.getLogger('uvicorn.access').info('%s - "GET /work"', '127.0.0.1')
 
     assert lines == []
+
+
+def test_redact_headers() -> None:
+    headers = {
+        'Authorization': 'Bearer secret',
+        'cookie': 'session=secret',
+        'Set-Cookie': 'session=secret',
+        'X-API-Key': 'secret',
+        'accept': 'application/json',
+    }
+
+    assert redact_headers(headers) == {
+        'Authorization': '[REDACTED]',
+        'cookie': '[REDACTED]',
+        'Set-Cookie': '[REDACTED]',
+        'X-API-Key': '[REDACTED]',
+        'accept': 'application/json',
+    }

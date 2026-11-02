@@ -3,7 +3,6 @@ import json
 import logging
 import sys
 import traceback
-from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any
 
 from loguru import logger
@@ -22,15 +21,6 @@ LOG_FORMAT = (
 
 if TYPE_CHECKING:
     from loguru import Message
-
-SENSITIVE_HEADERS = frozenset({'authorization', 'cookie', 'set-cookie', 'x-api-key'})
-
-
-def redact_headers(headers: Mapping[str, str]) -> dict[str, str]:
-    return {
-        name: '[REDACTED]' if name.lower() in SENSITIVE_HEADERS else value
-        for name, value in headers.items()
-    }
 
 
 class InterceptHandler(logging.Handler):
@@ -63,6 +53,7 @@ def _json_sink(message: Message) -> None:
         'level': record['level'].name,
         'message': record['message'],
         'location': f'{record["name"]}:{record["function"]}:{record["line"]}',
+        'request_id': record['extra']['request_id'],
     }
     if record['exception'] is not None:
         line['exception'] = ''.join(traceback.format_exception(*record['exception']))

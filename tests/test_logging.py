@@ -4,11 +4,12 @@ import logging.config
 from collections.abc import Iterator
 
 import pytest
+from fastapi.testclient import TestClient
 from loguru import logger
 from uvicorn.config import LOGGING_CONFIG
 
 from app.env import env
-from app.logging import redact_headers, setup_logging
+from app.logging import setup_logging
 
 
 @pytest.fixture
@@ -53,28 +54,30 @@ def test_json_lines(json_logs: pytest.CaptureFixture[str]) -> None:
         logging.getLogger('sqlalchemy').exception('query failed')
 
     first, second = map(json.loads, json_logs.readouterr().err.splitlines())
-    assert first.keys() == {'time', 'level', 'message', 'location'}
+    assert first.keys() == {'time', 'level', 'message', 'location', 'request_id'}
     assert first['level'] == 'INFO'
     assert first['message'] == 'hello'
+    assert first['request_id'] == '-'
     assert first['location'].startswith(f'{__name__}:test_json_lines:')
     assert second['message'] == 'query failed'
     assert second['location'].startswith(f'{__name__}:test_json_lines:')
     assert 'ZeroDivisionError: division by zero' in second['exception']
 
 
-def test_redact_headers() -> None:
-    headers = {
-        'Authorization': 'Bearer secret',
-        'cookie': 'session=secret',
-        'Set-Cookie': 'session=secret',
-        'X-API-Key': 'secret',
-        'accept': 'application/json',
-    }
+def test_json_access_line_has_request_id(
+    json_logs: pytest.CaptureFixture[str], client: TestClient
+) -> None:
+    client.get(
+        '/health',
+        headers={'x-request-id': 'abc-123', 'authorization': 'Bearer secret'},
+    )
 
-    assert redact_headers(headers) == {
-        'Authorization': '[REDACTED]',
-        'cookie': '[REDACTED]',
-        'Set-Cookie': '[REDACTED]',
-        'X-API-Key': '[REDACTED]',
-        'accept': 'application/json',
-    }
+    output = json_logs.readouterr().err
+    access = [
+        line
+        for line in map(json.loads, output.splitlines())
+        if line['message'].startswith('GET /health 200')
+    ]
+    assert len(access) == 1
+    assert access[0]['request_id'] == 'abc-123'
+    assert 'secret' not in output
