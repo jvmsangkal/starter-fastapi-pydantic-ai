@@ -3,7 +3,10 @@ from collections.abc import Iterator
 import pytest
 from fastapi.testclient import TestClient
 from pydantic_ai import models
+from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel.pool import StaticPool
 
+from app.db import get_session
 from app.main import app
 
 
@@ -14,5 +17,20 @@ def block_real_model_requests() -> Iterator[None]:
 
 
 @pytest.fixture
-def client() -> TestClient:
-    return TestClient(app)
+def session() -> Iterator[Session]:
+    # StaticPool keeps a single connection so every thread sees the same in-memory DB.
+    engine = create_engine(
+        'sqlite://',
+        connect_args={'check_same_thread': False},
+        poolclass=StaticPool,
+    )
+    SQLModel.metadata.create_all(engine)
+    with Session(engine) as session:
+        yield session
+
+
+@pytest.fixture
+def client(session: Session) -> Iterator[TestClient]:
+    app.dependency_overrides[get_session] = lambda: session
+    yield TestClient(app)
+    app.dependency_overrides.clear()

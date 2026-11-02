@@ -1,48 +1,65 @@
 # starter-fastapi-pydantic-ai
 
-Minimal starter template: a **FastAPI** app with one **Pydantic AI** agent, on Python 3.15.
+Minimal starter template: a **FastAPI** app with one **Pydantic AI** agent and **SQLModel**
+for the database, on Python 3.15.
 Tooling: **uv** (deps + lockfile), **ruff** (lint + format), **pyrefly** (types), **pytest**,
-**pre-commit**, GitHub Actions CI, and Cursor / Claude Code hooks that run ruff after agent edits.
+**pre-commit**, a **Makefile**, GitHub Actions CI, and Cursor / Claude Code hooks that run
+ruff on Python files after an agent edits them.
 
 ## Setup
 
-Install [uv](https://docs.astral.sh/uv/), then:
+Install [uv](https://docs.astral.sh/uv/) and `make`, then:
 
 ```bash
-uv sync
+make dev   # uv sync + install the pre-commit git hooks
 ```
+
+Run `make` (or `make help`) to list every target.
 
 ## Run
 
 ```bash
-uv run fastapi dev
+make run
 curl http://127.0.0.1:8000/health   # {"status":"ok"}
 ```
 
-The app starts without any secrets. To actually call the model via `POST /chat`, set
-`OPENAI_API_KEY` first:
+The app starts without any secrets:
+
+- **Database:** `DATABASE_URL` defaults to a local SQLite file, `sqlite:///./app.db`, created
+  on startup. Point it at another database with `DATABASE_URL=...`.
+- **Agent:** `POST /chat` needs `OPENAI_API_KEY` set to actually call the model.
 
 ```bash
+curl -X POST http://127.0.0.1:8000/items -H 'content-type: application/json' -d '{"name": "first"}'
 curl -X POST http://127.0.0.1:8000/chat -H 'content-type: application/json' -d '{"prompt": "Hello"}'
 ```
 
 ## Lint, format, typecheck, test
 
 ```bash
-uv run ruff check --fix
-uv run ruff format
-uv run pyrefly check
-uv run pytest
+make lint        # ruff check + ruff format --check
+make format      # run all pre-commit hooks (ruff fix + format, pyrefly, hygiene) on every file
+make typecheck   # pyrefly check
+make test        # pytest
+make check       # lint + typecheck + test, same as CI
 ```
 
-Tests use Pydantic AI's `TestModel`, so they need no API key.
+Tests use Pydantic AI's `TestModel` and an in-memory SQLite database, so they need no API
+key and no database.
 
-## Pre-commit hooks
+## Agent hooks
 
-```bash
-uv run pre-commit install
-uv run pre-commit run --all-files   # optional: run on everything once
-```
+After an agent edits an existing `.py` file, `.cursor/hooks.json` and `.claude/settings.json`
+run `.agents/ruff_after_edit.py` from the project root, which runs `ruff check --fix` and
+`ruff format` on that file. Other files are skipped, and the hooks never block the agent.
+
+## Library skills
+
+`.agents/skills/` (Cursor and other agents) and `.claude/skills/` (Claude Code) hold
+[Library Skills](https://library-skills.io/): the official agent skills that fastapi,
+pydantic-ai, and sqlmodel ship inside their packages. They are committed as relative
+symlinks into `.venv`, so they resolve after `make dev` (or `uv sync`). Run `make skills`
+after changing dependencies to add, repair, or remove them (needs `jq`).
 
 ## Editor
 

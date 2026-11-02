@@ -18,30 +18,30 @@ from pathlib import Path
 def edited_python_file(payload: object) -> Path | None:
     if not isinstance(payload, dict):
         return None
-    raw = payload.get("file_path")
-    tool_input = payload.get("tool_input")
+    raw = payload.get('file_path')
+    tool_input = payload.get('tool_input')
     if raw is None and isinstance(tool_input, dict):
-        raw = tool_input.get("file_path")
+        raw = tool_input.get('file_path')
     if not isinstance(raw, str):
         return None
     path = Path(raw)
-    return path if path.suffix == ".py" and path.is_file() else None
+    return path if path.suffix == '.py' and path.is_file() else None
 
 
 def main() -> None:
     path = edited_python_file(json.load(sys.stdin))
     if path is None:
         return
-    for args in (["check", "--fix", "--quiet"], ["format", "--quiet"]):
+    for args in (['check', '--fix', '--quiet'], ['format', '--quiet']):
         subprocess.run(
-            [sys.executable, "-m", "ruff", *args, str(path)],
+            [sys.executable, '-m', 'ruff', *args, str(path)],
             capture_output=True,
             check=False,
             timeout=20,
         )
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     with contextlib.suppress(ValueError, OSError, subprocess.SubprocessError):
         main()
     sys.exit(0)

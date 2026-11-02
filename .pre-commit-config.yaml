@@ -1,33 +1,42 @@
-# ruff and pyrefly run through `uv run` so they use the exact versions pinned in uv.lock.
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
+-   repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
     hooks:
-      - id: trailing-whitespace
-      - id: end-of-file-fixer
-      - id: check-yaml
-      - id: check-toml
-      - id: check-json
-      - id: check-merge-conflict
-      - id: check-added-large-files
-
-  - repo: local
+    -   id: check-added-large-files
+    -   id: check-toml
+    -   id: check-yaml
+        args:
+        -   --unsafe
+    -   id: check-json
+    -   id: check-merge-conflict
+    -   id: end-of-file-fixer
+    -   id: trailing-whitespace
+# ruff and pyrefly run through `uv run` so they use the versions pinned in uv.lock.
+-   repo: local
     hooks:
-      - id: ruff-check
-        name: ruff check --fix
+    -   id: ruff-check
+        name: ruff check
         entry: uv run --locked ruff check --fix --force-exclude
         language: unsupported
         types_or: [python, pyi]
         require_serial: true
-      - id: ruff-format
+    -   id: ruff-format
         name: ruff format
         entry: uv run --locked ruff format --force-exclude
         language: unsupported
         types_or: [python, pyi]
         require_serial: true
-      - id: pyrefly
+    -   id: pyrefly
         name: pyrefly check
         entry: uv run --locked pyrefly check
         language: unsupported
         types_or: [python, pyi]
         pass_filenames: false
+
+ci:
+    autofix_commit_msg: 🎨 [pre-commit.ci] Auto format from pre-commit.com hooks
+    autoupdate_commit_msg: ⬆ [pre-commit.ci] pre-commit autoupdate
+    # pre-commit.ci has no uv, so the local uv-backed hooks only run locally and in CI.
+    skip: [ruff-check, ruff-format, pyrefly]

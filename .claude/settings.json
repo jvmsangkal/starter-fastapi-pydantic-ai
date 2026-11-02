@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --quiet --project \"$CLAUDE_PROJECT_DIR\" python \"$CLAUDE_PROJECT_DIR/scripts/ruff_after_edit.py\"",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" && uv run --quiet python .agents/ruff_after_edit.py; exit 0",
             "timeout": 30
           }
         ]
