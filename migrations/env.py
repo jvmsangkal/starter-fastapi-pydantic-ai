@@ -2,16 +2,15 @@ from logging.config import fileConfig
 
 from alembic import context
 from sqlalchemy import create_engine, pool
-from sqlmodel import SQLModel
 
-from app import models  # noqa: F401  # registers the table models on SQLModel.metadata
-from app.env import env
+from app.core.env import env
+from app.db.base import metadata
 
 config = context.config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-target_metadata = SQLModel.metadata
+target_metadata = metadata
 # SQLite can't ALTER most column changes in place; batch mode recreates the table instead.
 render_as_batch = env.DATABASE_URL.startswith('sqlite')
 

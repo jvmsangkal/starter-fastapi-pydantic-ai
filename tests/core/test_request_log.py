@@ -11,8 +11,8 @@ from fastapi.testclient import TestClient
 from loguru import logger
 from uvicorn.config import LOGGING_CONFIG
 
-from app.logging import setup_logging
-from app.request_log import RequestLogMiddleware, redact_headers
+from app.core.logging import setup_logging
+from app.core.request_log import RequestLogMiddleware, redact_headers
 
 demo = FastAPI()
 demo.add_middleware(RequestLogMiddleware)

@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING, Any
 
 from loguru import logger
 
-from app.env import env
-from app.request_log import request_id
+from app.core.env import env
+from app.core.request_log import request_id
 
 # loguru's default format with the request id after the level.
 LOG_FORMAT = (

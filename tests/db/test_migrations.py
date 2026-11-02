@@ -5,9 +5,9 @@ from alembic import command
 from alembic.config import Config
 from sqlalchemy import create_engine, inspect
 
-from app.env import env
+from app.core.env import env
 
-ALEMBIC_INI = Path(__file__).parents[1] / 'alembic.ini'
+ALEMBIC_INI = Path(__file__).parents[2] / 'alembic.ini'
 
 
 @pytest.fixture
