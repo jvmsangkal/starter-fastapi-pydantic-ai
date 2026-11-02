@@ -19,8 +19,8 @@ app/db.py                 SQLModel engine from DATABASE_URL + SessionDep depende
 app/models.py             SQLModel table models
 tests/                    pytest; conftest.py blocks real model requests, uses in-memory SQLite
 Makefile                  dev workflow targets (`make help`)
-.cursor/hooks.json        Cursor afterFileEdit hook -> pre-commit on the edited file
-.claude/settings.json     Claude Code PostToolUse hook -> pre-commit on the edited file
+.cursor/hooks.json        Cursor afterFileEdit hook -> ruff fix, ruff format, pyrefly on the edited .py file
+.claude/settings.json     Claude Code PostToolUse hook -> same; pyrefly errors returned as additionalContext
 .github/workflows/ci.yml  CI: sync, lint, format check, typecheck, test
 ```
 

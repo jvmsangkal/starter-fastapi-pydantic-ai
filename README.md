@@ -4,7 +4,7 @@ Minimal starter template: a **FastAPI** app with one **Pydantic AI** agent and *
 for the database, on Python 3.15.
 Tooling: **uv** (deps + lockfile), **ruff** (lint + format), **pyrefly** (types), **pytest**,
 **pre-commit**, a **Makefile**, GitHub Actions CI, and Cursor / Claude Code hooks that run
-pre-commit on files after an agent edits them.
+ruff and pyrefly on Python files after an agent edits them.
 
 ## Setup
 
@@ -49,8 +49,12 @@ key and no database.
 
 ## Agent hooks
 
-`.cursor/hooks.json` and `.claude/settings.json` run `pre-commit run --files <edited file>`
-after every agent edit. They need `jq` on your `PATH`; without it they silently do nothing.
+After an agent edits an existing `.py` file, `.cursor/hooks.json` and `.claude/settings.json`
+run `ruff check --fix`, `ruff format`, and `pyrefly check` on that file. Other files are
+skipped, and the hooks never block the agent. Claude Code gets pyrefly errors back as
+`additionalContext`; Cursor's `afterFileEdit` hook has no output the agent sees, so there
+pyrefly only writes to the hook's stderr. The hooks need `jq` on your `PATH`; without it
+they silently do nothing.
 
 ## Editor
 

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "f=$(jq -r '.tool_input.file_path // empty'); [ -f \"$f\" ] && cd \"$CLAUDE_PROJECT_DIR\" && uv run --quiet pre-commit run --files \"$f\" >/dev/null 2>&1; exit 0",
+            "command": "f=$(jq -r '.tool_input.file_path // empty' 2>/dev/null); case \"$f\" in *.py) ;; *) exit 0 ;; esac; [ -f \"$f\" ] && cd \"$CLAUDE_PROJECT_DIR\" || exit 0; uv run --quiet ruff check --fix \"$f\" >/dev/null 2>&1; uv run --quiet ruff format \"$f\" >/dev/null 2>&1; out=$(uv run --quiet pyrefly check \"$f\" 2>&1) || jq -nc --arg c \"$out\" '{hookSpecificOutput: {hookEventName: \"PostToolUse\", additionalContext: $c}}'; exit 0",
             "timeout": 60
           }
         ]
