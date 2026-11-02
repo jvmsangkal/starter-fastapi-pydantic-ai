@@ -10,6 +10,8 @@ from app.db import SessionDep
 from app.errors import AppError, ConflictError, NotFoundError, app_error_handler
 from app.logging import setup_logging
 from app.models import Item
+from app.probes import mark_ready
+from app.probes import router as probes_router
 from app.request_log import RequestLogMiddleware
 from app.resources import open_resources
 
@@ -20,12 +22,14 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     # uvicorn applies its log config, and that config would undo the setup.
     setup_logging()
     async with open_resources(app):
-        yield
+        with mark_ready(app):
+            yield
 
 
 app = FastAPI(title='starter-fastapi-pydantic-ai', lifespan=lifespan)
 app.exception_handler(AppError)(app_error_handler)
 app.add_middleware(RequestLogMiddleware)
+app.include_router(probes_router)
 
 
 class ChatRequest(BaseModel):
@@ -34,11 +38,6 @@ class ChatRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     output: str
-
-
-@app.get('/health')
-def health() -> dict[str, str]:
-    return {'status': 'ok'}
 
 
 @app.post('/chat')

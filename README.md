@@ -21,8 +21,13 @@ Run `make` (or `make help`) to list every target.
 ```bash
 make migrate   # create or update the database schema
 make run
-curl http://127.0.0.1:8000/health   # {"status":"ok"}
+curl http://127.0.0.1:8000/live    # {"status":"ok"}
+curl http://127.0.0.1:8000/ready   # {"status":"ok"}
 ```
+
+`GET /live` always returns 200. `GET /ready` returns 200 after lifespan startup finishes and
+503 before then and once shutdown begins. Point liveness and readiness probes at them. Both
+are left out of the OpenAPI schema.
 
 The app starts without any secrets:
 
@@ -74,7 +79,7 @@ all print to stderr in loguru's format:
 
 ```text
 2026-11-02 13:56:26.701 | INFO     | - | uvicorn.lifespan.on:startup:62 - Application startup complete.
-2026-11-02 13:56:33.381 | INFO     | demo-123 | app.request_log:__call__:47 - GET /health 200 34.7ms
+2026-11-02 13:56:33.381 | INFO     | demo-123 | app.request_log:__call__:47 - GET /items 200 34.7ms
 ```
 
 - Set the level with `LOG_LEVEL`: `DEBUG`, `INFO` (the default), `WARNING`, `ERROR`, or
@@ -84,7 +89,7 @@ all print to stderr in loguru's format:
   when there is a traceback:
 
   ```text
-  {"time": "2026-11-02T13:59:12.094001+00:00", "level": "INFO", "message": "GET /health 200 34.2ms", "location": "app.request_log:__call__:56", "request_id": "demo-123"}
+  {"time": "2026-11-02T13:59:12.094001+00:00", "level": "INFO", "message": "GET /items 200 34.2ms", "location": "app.request_log:__call__:56", "request_id": "demo-123"}
   ```
 - In app code, log with `from loguru import logger`.
 - To log request or response headers, pass them through `redact_headers()` from

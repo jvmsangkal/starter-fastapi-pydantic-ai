@@ -13,7 +13,8 @@ Guide for coding agents working in this repo.
 ## Layout
 
 ```
-app/main.py               FastAPI app: lifespan sets up logging, opens resources; /health, /chat, /items
+app/main.py               FastAPI app: lifespan sets up logging, opens resources; /chat, /items
+app/probes.py             /live and /ready probes; mark_ready() sets app.state.ready around the lifespan yield
 app/env.py                pydantic-settings schema; `env = load_env()` validates env/.env at import
 app/logging.py            setup_logging(): loguru to stderr at LOG_LEVEL (JSON lines if LOG_JSON), stdlib logging routed into it
 app/request_log.py        ASGI middleware: x-request-id in every log line and the response; one access line per request

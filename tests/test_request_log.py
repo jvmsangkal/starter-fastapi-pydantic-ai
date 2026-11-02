@@ -57,19 +57,19 @@ def lines() -> Iterator[list[str]]:
 
 
 def test_echoes_provided_request_id(client: TestClient) -> None:
-    response = client.get('/health', headers={'x-request-id': 'abc-123'})
+    response = client.get('/live', headers={'x-request-id': 'abc-123'})
 
     assert response.headers['x-request-id'] == 'abc-123'
 
 
 def test_generates_request_id_when_absent(client: TestClient) -> None:
-    response = client.get('/health')
+    response = client.get('/live')
 
     assert uuid.UUID(response.headers['x-request-id']).version == 4
 
 
 def test_replaces_invalid_request_id(client: TestClient) -> None:
-    response = client.get('/health', headers={'x-request-id': 'a b'})
+    response = client.get('/live', headers={'x-request-id': 'a b'})
 
     assert uuid.UUID(response.headers['x-request-id']).version == 4
 
