@@ -1,6 +1,8 @@
 from pathlib import Path
 
 import pytest
+from alembic import command
+from alembic.config import Config
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import QueuePool
 
@@ -13,6 +15,7 @@ def test_lifespan_opens_and_disposes_engine(
 ) -> None:
     db_path = tmp_path / 'lifespan.db'
     monkeypatch.setattr(env, 'DATABASE_URL', f'sqlite:///{db_path}')
+    command.upgrade(Config(Path(__file__).parents[1] / 'alembic.ini'), 'head')
 
     with TestClient(app) as client:
         assert app.state.engine.url.database == str(db_path)

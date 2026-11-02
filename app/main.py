@@ -6,7 +6,7 @@ from pydantic import BaseModel
 from sqlmodel import select
 
 from app.agent import agent
-from app.db import SessionDep, create_db_and_tables
+from app.db import SessionDep
 from app.errors import AppError, ConflictError, NotFoundError, app_error_handler
 from app.logging import setup_logging
 from app.models import Item
@@ -22,7 +22,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     # uvicorn applies its log config, and that config would undo the setup.
     setup_logging()
     async with open_resources(app):
-        create_db_and_tables(app.state.engine)
         with mark_ready(app):
             yield
 

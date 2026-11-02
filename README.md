@@ -19,6 +19,7 @@ Run `make` (or `make help`) to list every target.
 ## Run
 
 ```bash
+make migrate   # create or update the database schema
 make run
 curl http://127.0.0.1:8000/live    # {"status":"ok"}
 curl http://127.0.0.1:8000/ready   # {"status":"ok"}
@@ -30,8 +31,8 @@ are left out of the OpenAPI schema.
 
 The app starts without any secrets:
 
-- **Database:** `DATABASE_URL` defaults to a local SQLite file, `sqlite:///./app.db`, created
-  on startup. Point it at another database with `DATABASE_URL=...`.
+- **Database:** `DATABASE_URL` defaults to a local SQLite file, `sqlite:///./app.db`.
+  `make migrate` creates it. Point it at another database with `DATABASE_URL=...`.
 - **Agent:** `POST /chat` needs `OPENAI_API_KEY` set to actually call the model.
 
 Environment variables are declared and validated once, at import, in `app/env.py` (a
@@ -51,6 +52,24 @@ See .env.example.
 curl -X POST http://127.0.0.1:8000/items -H 'content-type: application/json' -d '{"name": "first"}'
 curl -X POST http://127.0.0.1:8000/chat -H 'content-type: application/json' -d '{"prompt": "Hello"}'
 ```
+
+## Database migrations
+
+[Alembic](https://alembic.sqlalchemy.org/) owns the schema. The app no longer creates tables
+on startup. `migrations/env.py` reads `DATABASE_URL` from `app.env` and compares against
+`SQLModel.metadata`.
+
+```bash
+make migrate                      # alembic upgrade head
+make migration m="add item price" # alembic revision --autogenerate -m "add item price"
+```
+
+After you change a model in `app/models.py`, run `make migration`, review the new file in
+`migrations/versions/`, and commit it. Autogenerate misses some changes, such as table
+renames. `tests/test_migrations.py` fails if the models and the migrations disagree.
+
+If your `app.db` was created by an older version of this starter, which created tables on
+startup, run `uv run alembic stamp head` once instead of `make migrate`.
 
 ## Logging
 

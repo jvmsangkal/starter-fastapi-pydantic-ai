@@ -13,7 +13,7 @@ Guide for coding agents working in this repo.
 ## Layout
 
 ```
-app/main.py               FastAPI app: lifespan sets up logging, opens resources, creates tables; /chat, /items
+app/main.py               FastAPI app: lifespan sets up logging, opens resources; /chat, /items
 app/probes.py             /live and /ready probes; mark_ready() sets app.state.ready around the lifespan yield
 app/env.py                pydantic-settings schema; `env = load_env()` validates env/.env at import
 app/logging.py            setup_logging(): loguru to stderr at LOG_LEVEL (JSON lines if LOG_JSON), stdlib logging routed into it
@@ -23,6 +23,8 @@ app/db.py                 engine factory from env.DATABASE_URL + SessionDep (rea
 app/resources.py          open_resources(): engine on app.state + agent HTTP client, closed on shutdown
 app/models.py             SQLModel table models
 app/errors.py             AppError subclasses (NotFoundError 404, ConflictError 409) + their handler
+alembic.ini               Alembic config (file_template, ruff post-write hooks)
+migrations/               Alembic env.py (URL from app.env, SQLModel.metadata) + versions/
 tests/                    pytest; conftest.py blocks real model requests, uses in-memory SQLite
 Makefile                  dev workflow targets (`make help`)
 .agents/skills/           Library Skills symlinks into .venv (Cursor and other agents)
@@ -38,6 +40,8 @@ Makefile                  dev workflow targets (`make help`)
 ```bash
 make dev         # uv sync + pre-commit install
 make run         # fastapi dev server with reload on http://127.0.0.1:8000
+make migrate     # alembic upgrade head
+make migration m="msg"  # alembic revision --autogenerate -m "msg"
 make lint        # ruff check + ruff format --check
 make format      # pre-commit on all files (ruff --fix, ruff format, pyrefly, hygiene)
 make typecheck   # pyrefly check
@@ -70,9 +74,11 @@ Before finishing a change, run `make check`; CI runs the same checks and must st
   in the lifespan: `fastapi run app/main.py` imports the app before uvicorn applies its log
   config, which would undo a setup done at import.
 - Never log raw headers: pass them through `redact_headers()` from `app/request_log.py`.
-- New table models go in `app/models.py` (imported by `app/main.py` so `create_all` sees them).
-  There are no migrations yet; tables are created on startup.
+- New table models go in `app/models.py` (imported by `migrations/env.py` so autogenerate sees
+  them). After changing a model, run `make migration m="..."`, review the generated file, and
+  commit it. The app does not create tables on startup; `tests/test_migrations.py` fails if the
+  models and migrations disagree.
 - To return an HTTP error from a route, raise an `AppError` subclass from `app/errors.py`, not
   `HTTPException`, and don't catch it in the route. The handler registered in `app/main.py`
   returns `{"detail": ...}` with the subclass's `status_code`. For a new status, add a subclass.
-- Keep it minimal: don't add infrastructure (Docker, auth, observability, migrations) unless asked.
+- Keep it minimal: don't add infrastructure (Docker, auth, observability) unless asked.

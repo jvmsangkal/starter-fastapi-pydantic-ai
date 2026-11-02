@@ -13,6 +13,8 @@ from app.env import env
 async def open_resources(app: FastAPI) -> AsyncGenerator[None]:
     engine = create_db_engine()
     app.state.engine = engine
+    # str(URL) masks the password.
+    logger.info('Opened database engine for {}', engine.url)
     try:
         async with AsyncExitStack() as stack:
             # Without a key the model is a lazy string; entering the agent would build
