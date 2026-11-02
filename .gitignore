@@ -16,6 +16,9 @@ dist/
 .env
 .env.*
 
+# Local SQLite database (default DATABASE_URL)
+*.db
+
 # OS / editors
 .DS_Store
 .idea/
