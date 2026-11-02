@@ -5,6 +5,7 @@ description = "Starter template: FastAPI + Pydantic AI, managed with uv."
 readme = "README.md"
 requires-python = ">=3.15"
 dependencies = [
+    "alembic>=1.20.1",
     "fastapi[standard]>=0.162.0",
     "pydantic-ai-slim[openai]>=2.64.0",
     "pydantic-settings>=2.16.2",

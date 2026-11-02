@@ -1,4 +1,4 @@
-.PHONY: help clean dev lock skills run format lint typecheck test check
+.PHONY: help clean dev lock skills run migrate migration format lint typecheck test check
 .DEFAULT_GOAL := help
 
 help: ## Display this help message
@@ -25,6 +25,13 @@ skills: ## Install/refresh library agent skills in .agents/skills and .claude/sk
 
 run: ## Run the FastAPI dev server with auto-reload
 	uv run fastapi dev
+
+migrate: ## Apply all pending database migrations (alembic upgrade head)
+	uv run alembic upgrade head
+
+migration: ## Autogenerate a migration from model changes: make migration m="add item price"
+	@test -n "$(m)" || { echo 'usage: make migration m="message"'; exit 1; }
+	uv run alembic revision --autogenerate -m "$(m)"
 
 format: ## Scan and format all files with pre-commit
 	uv run pre-commit run --all-files

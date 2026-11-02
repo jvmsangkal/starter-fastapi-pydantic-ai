@@ -13,11 +13,13 @@ Guide for coding agents working in this repo.
 ## Layout
 
 ```
-app/main.py               FastAPI app: lifespan creates tables; /health, /chat, /items
+app/main.py               FastAPI app: /health, /chat, /items
 app/env.py                pydantic-settings schema; `env = load_env()` validates env/.env at import
 app/agent.py              Pydantic AI agent (model check deferred; no API key needed to boot)
 app/db.py                 SQLModel engine from env.DATABASE_URL + SessionDep dependency
 app/models.py             SQLModel table models
+alembic.ini               Alembic config (file_template, ruff post-write hooks)
+migrations/               Alembic env.py (URL from app.env, SQLModel.metadata) + versions/
 tests/                    pytest; conftest.py blocks real model requests, uses in-memory SQLite
 Makefile                  dev workflow targets (`make help`)
 .agents/skills/           Library Skills symlinks into .venv (Cursor and other agents)
@@ -33,6 +35,8 @@ Makefile                  dev workflow targets (`make help`)
 ```bash
 make dev         # uv sync + pre-commit install
 make run         # fastapi dev server with reload on http://127.0.0.1:8000
+make migrate     # alembic upgrade head
+make migration m="msg"  # alembic revision --autogenerate -m "msg"
 make lint        # ruff check + ruff format --check
 make format      # pre-commit on all files (ruff --fix, ruff format, pyrefly, hygiene)
 make typecheck   # pyrefly check
@@ -59,6 +63,8 @@ Before finishing a change, run `make check`; CI runs the same checks and must st
 - Read config only via `from app.env import env`, never `os.environ`/`os.getenv`. Add a new
   variable as a typed field on `Settings` in `app/env.py` (secrets as `SecretStr`) and
   document it in `.env.example`.
-- New table models go in `app/models.py` (imported by `app/main.py` so `create_all` sees them).
-  There are no migrations yet; tables are created on startup.
-- Keep it minimal: don't add infrastructure (Docker, auth, observability, migrations) unless asked.
+- New table models go in `app/models.py` (imported by `migrations/env.py` so autogenerate sees
+  them). After changing a model, run `make migration m="..."`, review the generated file, and
+  commit it. The app does not create tables on startup; `tests/test_migrations.py` fails if the
+  models and migrations disagree.
+- Keep it minimal: don't add infrastructure (Docker, auth, observability) unless asked.

@@ -6,13 +6,12 @@ from pydantic import BaseModel
 from sqlmodel import select
 
 from app.agent import agent
-from app.db import SessionDep, create_db_and_tables
+from app.db import SessionDep
 from app.models import Item
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
-    create_db_and_tables()
     yield
 
 
