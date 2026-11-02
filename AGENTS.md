@@ -19,6 +19,8 @@ app/db.py                 SQLModel engine from DATABASE_URL + SessionDep depende
 app/models.py             SQLModel table models
 tests/                    pytest; conftest.py blocks real model requests, uses in-memory SQLite
 Makefile                  dev workflow targets (`make help`)
+.agents/skills/           Library Skills symlinks into .venv (Cursor and other agents)
+.claude/skills/           same Library Skills symlinks for Claude Code
 .cursor/hooks.json        Cursor afterFileEdit hook -> ruff fix, ruff format, pyrefly on the edited .py file
 .claude/settings.json     Claude Code PostToolUse hook -> same; pyrefly errors returned as additionalContext
 .github/workflows/ci.yml  CI: sync, lint, format check, typecheck, test
@@ -35,6 +37,7 @@ make typecheck   # pyrefly check
 make test        # pytest
 make check       # lint + typecheck + test (what CI runs)
 make lock        # refresh uv.lock
+make skills      # install/refresh Library Skills after dependency changes
 make clean       # remove caches and bytecode
 ```
 

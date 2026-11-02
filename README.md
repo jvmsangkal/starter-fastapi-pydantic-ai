@@ -56,6 +56,14 @@ skipped, and the hooks never block the agent. Claude Code gets pyrefly errors ba
 pyrefly only writes to the hook's stderr. The hooks need `jq` on your `PATH`; without it
 they silently do nothing.
 
+## Library skills
+
+`.agents/skills/` (Cursor and other agents) and `.claude/skills/` (Claude Code) hold
+[Library Skills](https://library-skills.io/): the official agent skills that fastapi,
+pydantic-ai, and sqlmodel ship inside their packages. They are committed as relative
+symlinks into `.venv`, so they resolve after `make dev` (or `uv sync`). Run `make skills`
+after changing dependencies to add, repair, or remove them (needs `jq`).
+
 ## Editor
 
 Open in VS Code / Cursor and install the recommended extensions (ruff, pyrefly).

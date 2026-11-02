@@ -1,4 +1,4 @@
-.PHONY: help clean dev lock run format lint typecheck test check
+.PHONY: help clean dev lock skills run format lint typecheck test check
 .DEFAULT_GOAL := help
 
 help: ## Display this help message
@@ -17,6 +17,11 @@ dev: ## Install dependencies for dev and the pre-commit git hooks
 
 lock: ## Update uv.lock after editing dependencies in pyproject.toml
 	uv lock
+
+# --yes alone only repairs/removes managed links, and --all also pulls in transitive
+# deps, so pass the direct-dependency skills from `scan` explicitly.
+skills: ## Install/refresh library agent skills in .agents/skills and .claude/skills
+	uvx library-skills --yes --claude $$(uvx library-skills scan --json | jq -r '.skills[].name | "--skill=\(.)"')
 
 run: ## Run the FastAPI dev server with auto-reload
 	uv run fastapi dev
