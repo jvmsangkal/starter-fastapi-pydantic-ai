@@ -22,6 +22,7 @@ app/agent.py              Pydantic AI agent (model check deferred; no API key ne
 app/db.py                 engine factory from env.DATABASE_URL + SessionDep (reads app.state.engine)
 app/resources.py          open_resources(): engine on app.state + agent HTTP client, closed on shutdown
 app/models.py             SQLModel table models
+app/errors.py             AppError subclasses (NotFoundError 404, ConflictError 409) + their handler
 tests/                    pytest; conftest.py blocks real model requests, uses in-memory SQLite
 Makefile                  dev workflow targets (`make help`)
 .agents/skills/           Library Skills symlinks into .venv (Cursor and other agents)
@@ -71,4 +72,7 @@ Before finishing a change, run `make check`; CI runs the same checks and must st
 - Never log raw headers: pass them through `redact_headers()` from `app/request_log.py`.
 - New table models go in `app/models.py` (imported by `app/main.py` so `create_all` sees them).
   There are no migrations yet; tables are created on startup.
+- To return an HTTP error from a route, raise an `AppError` subclass from `app/errors.py`, not
+  `HTTPException`, and don't catch it in the route. The handler registered in `app/main.py`
+  returns `{"detail": ...}` with the subclass's `status_code`. For a new status, add a subclass.
 - Keep it minimal: don't add infrastructure (Docker, auth, observability, migrations) unless asked.
