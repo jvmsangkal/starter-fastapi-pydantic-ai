@@ -14,8 +14,9 @@ Guide for coding agents working in this repo.
 
 ```
 app/main.py               FastAPI app: lifespan creates tables; /health, /chat, /items
+app/env.py                pydantic-settings schema; `env = load_env()` validates env/.env at import
 app/agent.py              Pydantic AI agent (model check deferred; no API key needed to boot)
-app/db.py                 SQLModel engine from DATABASE_URL + SessionDep dependency
+app/db.py                 SQLModel engine from env.DATABASE_URL + SessionDep dependency
 app/models.py             SQLModel table models
 tests/                    pytest; conftest.py blocks real model requests, uses in-memory SQLite
 Makefile                  dev workflow targets (`make help`)
@@ -55,6 +56,9 @@ Before finishing a change, run `make check`; CI runs the same checks and must st
   `get_session` with an in-memory SQLite engine.
 - The app must boot without secrets. `DATABASE_URL` defaults to `sqlite:///./app.db`;
   `OPENAI_API_KEY` is only needed to actually call the model.
+- Read config only via `from app.env import env`, never `os.environ`/`os.getenv`. Add a new
+  variable as a typed field on `Settings` in `app/env.py` (secrets as `SecretStr`) and
+  document it in `.env.example`.
 - New table models go in `app/models.py` (imported by `app/main.py` so `create_all` sees them).
   There are no migrations yet; tables are created on startup.
 - Keep it minimal: don't add infrastructure (Docker, auth, observability, migrations) unless asked.

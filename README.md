@@ -29,6 +29,19 @@ The app starts without any secrets:
   on startup. Point it at another database with `DATABASE_URL=...`.
 - **Agent:** `POST /chat` needs `OPENAI_API_KEY` set to actually call the model.
 
+Environment variables are declared and validated once, at import, in `app/env.py` (a
+pydantic-settings `Settings` class, in the spirit of t3-env). They come from the process
+environment or an optional `.env` in the working directory (gitignored; copy
+`.env.example`). App code reads them with `from app.env import env`, never `os.environ`. A
+set but invalid variable stops startup with one message that lists every problem:
+
+```text
+Invalid environment variables:
+  DATABASE_URL: Value error, not a valid SQLAlchemy database URL
+  OPENAI_API_KEY: Value error, must not be empty (leave it unset instead)
+See .env.example.
+```
+
 ```bash
 curl -X POST http://127.0.0.1:8000/items -H 'content-type: application/json' -d '{"name": "first"}'
 curl -X POST http://127.0.0.1:8000/chat -H 'content-type: application/json' -d '{"prompt": "Hello"}'
