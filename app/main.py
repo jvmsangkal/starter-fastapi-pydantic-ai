@@ -7,11 +7,15 @@ from sqlmodel import select
 
 from app.agent import agent
 from app.db import SessionDep, create_db_and_tables
+from app.logging import setup_logging
 from app.models import Item
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
+    # Not at import time: `fastapi run app/main.py` imports this module before
+    # uvicorn applies its log config, and that config would undo the setup.
+    setup_logging()
     create_db_and_tables()
     yield
 

@@ -47,6 +47,24 @@ curl -X POST http://127.0.0.1:8000/items -H 'content-type: application/json' -d 
 curl -X POST http://127.0.0.1:8000/chat -H 'content-type: application/json' -d '{"prompt": "Hello"}'
 ```
 
+## Logging
+
+`app/logging.py` sets up [loguru](https://loguru.readthedocs.io/) when the app starts and
+routes the standard `logging` module into it. Uvicorn, FastAPI, SQLAlchemy, and app code
+all print to stderr in loguru's format:
+
+```text
+2026-11-02 13:44:44.298 | INFO     | uvicorn.lifespan.on:startup:62 - Application startup complete.
+```
+
+- Set the level with `LOG_LEVEL`: `DEBUG`, `INFO` (the default), `WARNING`, `ERROR`, or
+  `CRITICAL`.
+- In app code, log with `from loguru import logger`.
+
+The setup runs in the app's lifespan. Uvicorn prints `Started server process` and
+`Waiting for application startup.` before the lifespan starts, so those two lines keep
+uvicorn's format. The reloader's lines under `make run` keep it too.
+
 ## Lint, format, typecheck, test
 
 ```bash
