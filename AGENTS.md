@@ -20,9 +20,10 @@ app/models.py             SQLModel table models
 tests/                    pytest; conftest.py blocks real model requests, uses in-memory SQLite
 Makefile                  dev workflow targets (`make help`)
 .agents/skills/           Library Skills symlinks into .venv (Cursor and other agents)
+.agents/ruff_after_edit.py  Agent hook: ruff fix + format on edited .py files
 .claude/skills/           same Library Skills symlinks for Claude Code
-.cursor/hooks.json        Cursor afterFileEdit hook -> ruff fix, ruff format, pyrefly on the edited .py file
-.claude/settings.json     Claude Code PostToolUse hook -> same; pyrefly errors returned as additionalContext
+.cursor/hooks.json        Cursor afterFileEdit hook -> .agents/ruff_after_edit.py
+.claude/settings.json     Claude Code PostToolUse hook -> .agents/ruff_after_edit.py
 .github/workflows/ci.yml  CI: sync, lint, format check, typecheck, test
 ```
 

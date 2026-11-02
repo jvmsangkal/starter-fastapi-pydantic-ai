@@ -3,8 +3,8 @@
   "hooks": {
     "afterFileEdit": [
       {
-        "command": "f=$(jq -r '.file_path // empty' 2>/dev/null); case \"$f\" in *.py) ;; *) exit 0 ;; esac; [ -f \"$f\" ] || exit 0; uv run --quiet ruff check --fix \"$f\" >/dev/null 2>&1; uv run --quiet ruff format \"$f\" >/dev/null 2>&1; uv run --quiet pyrefly check \"$f\" >&2; exit 0",
-        "timeout": 60
+        "command": "cd \"$CURSOR_PROJECT_DIR\" && uv run --quiet python .agents/ruff_after_edit.py; exit 0",
+        "timeout": 30
       }
     ]
   }
