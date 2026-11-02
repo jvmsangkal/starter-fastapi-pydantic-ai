@@ -16,7 +16,7 @@ Guide for coding agents working in this repo.
 app/main.py               FastAPI app: lifespan sets up logging, opens resources, creates tables; /chat, /items
 app/probes.py             /live and /ready probes; mark_ready() sets app.state.ready around the lifespan yield
 app/env.py                pydantic-settings schema; `env = load_env()` validates env/.env at import
-app/logging.py            setup_logging(): loguru to stderr at LOG_LEVEL, stdlib logging routed into it
+app/logging.py            setup_logging(): loguru to stderr at LOG_LEVEL (JSON lines if LOG_JSON), stdlib logging routed into it
 app/request_log.py        ASGI middleware: x-request-id in every log line and the response; one access line per request
 app/agent.py              Pydantic AI agent (model check deferred; no API key needed to boot)
 app/db.py                 engine factory from env.DATABASE_URL + SessionDep (reads app.state.engine)
@@ -68,6 +68,7 @@ Before finishing a change, run `make check`; CI runs the same checks and must st
 - Log with `from loguru import logger`, not `logging.getLogger`. Keep the `setup_logging()` call
   in the lifespan: `fastapi run app/main.py` imports the app before uvicorn applies its log
   config, which would undo a setup done at import.
+- Never log raw headers: pass them through `redact_headers()` from `app/request_log.py`.
 - New table models go in `app/models.py` (imported by `app/main.py` so `create_all` sees them).
   There are no migrations yet; tables are created on startup.
 - Keep it minimal: don't add infrastructure (Docker, auth, observability, migrations) unless asked.

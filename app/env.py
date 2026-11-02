@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     # Optional so the app boots without it; POST /chat needs it to call the model.
     OPENAI_API_KEY: SecretStr | None = None
     LOG_LEVEL: Literal['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL'] = 'INFO'
+    LOG_JSON: bool = False
 
     @field_validator('OPENAI_API_KEY')
     @classmethod
