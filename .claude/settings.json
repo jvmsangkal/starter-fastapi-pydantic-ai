@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "uv run --quiet --project \"$CLAUDE_PROJECT_DIR\" python \"$CLAUDE_PROJECT_DIR/scripts/ruff_after_edit.py\"",
-            "timeout": 30
+            "command": "f=$(jq -r '.tool_input.file_path // empty'); [ -f \"$f\" ] && cd \"$CLAUDE_PROJECT_DIR\" && uv run --quiet pre-commit run --files \"$f\" >/dev/null 2>&1; exit 0",
+            "timeout": 60
           }
         ]
       }

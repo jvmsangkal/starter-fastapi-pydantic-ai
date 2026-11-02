@@ -42,7 +42,7 @@ ignore = [
 quote-style = "single"
 
 [tool.pyrefly]
-project-includes = ["app", "tests", "scripts"]
+project-includes = ["app", "tests"]
 
 [tool.pytest]
 testpaths = ["tests"]

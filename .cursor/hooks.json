@@ -3,8 +3,8 @@
   "hooks": {
     "afterFileEdit": [
       {
-        "command": "uv run --quiet python scripts/ruff_after_edit.py",
-        "timeout": 30
+        "command": "f=$(jq -r '.file_path // empty'); [ -f \"$f\" ] && uv run --quiet pre-commit run --files \"$f\" >/dev/null 2>&1; exit 0",
+        "timeout": 60
       }
     ]
   }
