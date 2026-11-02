@@ -18,6 +18,7 @@ app/env.py                pydantic-settings schema; `env = load_env()` validates
 app/agent.py              Pydantic AI agent (model check deferred; no API key needed to boot)
 app/db.py                 SQLModel engine from env.DATABASE_URL + SessionDep dependency
 app/models.py             SQLModel table models
+app/errors.py             AppError subclasses (NotFoundError 404, ConflictError 409) + their handler
 tests/                    pytest; conftest.py blocks real model requests, uses in-memory SQLite
 Makefile                  dev workflow targets (`make help`)
 .agents/skills/           Library Skills symlinks into .venv (Cursor and other agents)
@@ -61,4 +62,7 @@ Before finishing a change, run `make check`; CI runs the same checks and must st
   document it in `.env.example`.
 - New table models go in `app/models.py` (imported by `app/main.py` so `create_all` sees them).
   There are no migrations yet; tables are created on startup.
+- To return an HTTP error from a route, raise an `AppError` subclass from `app/errors.py`, not
+  `HTTPException`, and don't catch it in the route. The handler registered in `app/main.py`
+  returns `{"detail": ...}` with the subclass's `status_code`. For a new status, add a subclass.
 - Keep it minimal: don't add infrastructure (Docker, auth, observability, migrations) unless asked.
