@@ -50,8 +50,8 @@ key and no database.
 ## Agent hooks
 
 After an agent edits an existing `.py` file, `.cursor/hooks.json` and `.claude/settings.json`
-run `.agents/ruff_after_edit.py` from the project root, which runs `ruff check --fix` and
-`ruff format` on that file. Other files are skipped, and the hooks never block the agent.
+run `.agents/ruff_after_edit.py`, which runs `ruff check --fix` and `ruff format` on that
+file. Other files are skipped, and the script never exits with a blocking code.
 
 ## Library skills
 
