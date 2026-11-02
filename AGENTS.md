@@ -81,7 +81,7 @@ Before finishing a change, run `make check`; CI runs the same checks and must st
   - `service.py`: the logic. Functions take a `Session` and raise `AppError` subclasses.
   - `routes.py`: an `APIRouter` whose routes call the service and do nothing else.
   Then include the router in `create_app()` in `app/main.py` with `prefix='/v1'`.
-- App-wide plumbing (settings, logging, errors, middleware, probes, resources) lives in
+- App-wide code (settings, logging, errors, middleware, probes, resources) lives in
   `app/core/`. There is no `utils/` folder.
 - Each Pydantic AI agent gets one module in `app/agents/`, with its prompts in the same module
   (as `chat.py` keeps `INSTRUCTIONS`) or in a `<agent>_prompts.py` next to it.
