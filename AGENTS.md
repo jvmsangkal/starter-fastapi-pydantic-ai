@@ -13,12 +13,13 @@ Guide for coding agents working in this repo.
 ## Layout
 
 ```
-app/main.py               FastAPI app: lifespan sets up logging; /health, /chat, /items
+app/main.py               FastAPI app: lifespan sets up logging, opens resources; /health, /chat, /items
 app/env.py                pydantic-settings schema; `env = load_env()` validates env/.env at import
 app/logging.py            setup_logging(): loguru to stderr at LOG_LEVEL (JSON lines if LOG_JSON), stdlib logging routed into it
 app/request_log.py        ASGI middleware: x-request-id in every log line and the response; one access line per request
 app/agent.py              Pydantic AI agent (model check deferred; no API key needed to boot)
-app/db.py                 SQLModel engine from env.DATABASE_URL + SessionDep dependency
+app/db.py                 engine factory from env.DATABASE_URL + SessionDep (reads app.state.engine)
+app/resources.py          open_resources(): engine on app.state + agent HTTP client, closed on shutdown
 app/models.py             SQLModel table models
 app/errors.py             AppError subclasses (NotFoundError 404, ConflictError 409) + their handler
 alembic.ini               Alembic config (file_template, ruff post-write hooks)
@@ -66,6 +67,8 @@ Before finishing a change, run `make check`; CI runs the same checks and must st
 - Read config only via `from app.env import env`, never `os.environ`/`os.getenv`. Add a new
   variable as a typed field on `Settings` in `app/env.py` (secrets as `SecretStr`) and
   document it in `.env.example`.
+- Open shared clients (DB engine, HTTP clients) in `open_resources` in `app/resources.py`,
+  never at import; put the ones routes need on `app.state`.
 - Log with `from loguru import logger`, not `logging.getLogger`. Keep the `setup_logging()` call
   in the lifespan: `fastapi run app/main.py` imports the app before uvicorn applies its log
   config, which would undo a setup done at import.

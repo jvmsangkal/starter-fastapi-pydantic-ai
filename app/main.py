@@ -2,26 +2,25 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
-from loguru import logger
 from pydantic import BaseModel
 from sqlmodel import select
 
 from app.agent import agent
-from app.db import SessionDep, engine
+from app.db import SessionDep
 from app.errors import AppError, ConflictError, NotFoundError, app_error_handler
 from app.logging import setup_logging
 from app.models import Item
 from app.request_log import RequestLogMiddleware
+from app.resources import open_resources
 
 
 @asynccontextmanager
-async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     # Not at import time: `fastapi run app/main.py` imports this module before
     # uvicorn applies its log config, and that config would undo the setup.
     setup_logging()
-    # str(URL) masks the password.
-    logger.info('Using database {}', engine.url)
-    yield
+    async with open_resources(app):
+        yield
 
 
 app = FastAPI(title='starter-fastapi-pydantic-ai', lifespan=lifespan)
