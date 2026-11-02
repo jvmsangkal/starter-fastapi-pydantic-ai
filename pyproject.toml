@@ -24,7 +24,22 @@ entrypoint = "app.main:app"
 line-length = 88
 
 [tool.ruff.lint]
-extend-select = ["I", "UP", "B", "SIM"]
+select = [
+  "E",  # pycodestyle errors
+  "W",  # pycodestyle warnings
+  "F",  # pyflakes
+  "I",  # isort
+  "C4", # flake8-comprehensions
+  "B",  # flake8-bugbear
+  "UP", # pyupgrade
+]
+ignore = [
+  "E501", # line too long; the formatter wraps lines on a best-effort basis
+  "E402", # module level import not at top of file
+]
+
+[tool.ruff.format]
+quote-style = "single"
 
 [tool.pyrefly]
 project-includes = ["app", "tests", "scripts"]
