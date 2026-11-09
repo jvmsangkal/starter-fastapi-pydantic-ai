@@ -103,3 +103,28 @@ Before finishing a change, run `make check`; CI runs the same checks and must st
   `create_app()` returns `{"detail": ...}` with the subclass's `status_code`. For a new status,
   add a subclass.
 - Keep it minimal: don't add infrastructure (Docker, auth, observability) unless asked.
+
+## Cursor Cloud specific instructions
+
+- The image's system Python is not 3.15. Install puts `uv` on `/usr/local/bin`.
+  `uv sync --locked` installs the CPython pinned in `.python-version` and the locked
+  dependencies. `make dev` is `uv sync` plus `uv run pre-commit install`.
+- Start the dev server with `make run` (`uv run fastapi dev` on http://127.0.0.1:8000).
+  `GET /live` (`app/core/probes.py`) returns `{"status":"ok"}` once the process is
+  listening. `GET /ready` returns `{"status":"ok"}` after the lifespan in `app/main.py`
+  opens resources, and 503 before that and during shutdown. There is no `/health` route.
+  If `/live` is already ok, do not start a second server.
+- `make migrate` (`uv run alembic upgrade head`) applies `migrations/` to `DATABASE_URL`
+  (default `sqlite:///./app.db`, read in `app/core/env.py`). `/ready` does not mean
+  migrations have run. Tests skip this: `tests/conftest.py` uses in-memory SQLite.
+  `make migration m="msg"` is `uv run alembic revision --autogenerate -m "msg"`.
+- `make lint` is `uv run ruff check` and `uv run ruff format --check`. `make typecheck`
+  is `uv run pyrefly check`. `make test` is `uv run pytest -v`. `make check` is what CI
+  runs. `make format` is `uv run pre-commit run --all-files` (ruff --fix, ruff format,
+  pyrefly, and the hygiene hooks). The after-edit hook is `.agents/ruff_after_edit.py`.
+- `OPENAI_API_KEY` is not required to boot, lint, typecheck, or test. `POST /v1/chat`
+  (`app/chat/routes.py`, agent in `app/agents/chat.py`) calls OpenAI and fails until the
+  key is set. Exercise chat through pytest (`tests/chat/test_routes.py` and
+  `tests/agents/test_chat.py`), which overrides `app.agents.chat.agent` with `TestModel`.
+  Real model requests are blocked in `tests/conftest.py`. Feature routes live under
+  `/v1` (`app/items/` for items, `app/chat/` for chat); app-wide code is `app/core/`.
